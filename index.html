@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --board:#0E3A31;        /* xanh bảng lớp */
+  --board:#0E3A31;        /* xanh bảng khoa */
   --board-2:#0A2B24;
   --paper:#EBEFEA;
   --card:#FFFFFF;
@@ -30,7 +30,7 @@ body{
 }
 .shell{max-width:440px; margin:0 auto; padding:0 0 40px}
 
-/* ---- bảng lớp ---- */
+/* ---- bảng khoa ---- */
 .board{
   background:
     radial-gradient(120% 90% at 20% 0%, rgba(255,255,255,.07), transparent 60%),
@@ -92,9 +92,9 @@ input:focus-visible{outline:3px solid var(--gold); outline-offset:0; border-colo
 <div class="shell">
 
   <div class="board">
-    <p class="eyebrow">Điểm danh tại lớp</p>
+    <p class="eyebrow">Điểm danh tại khoa</p>
     <h1 id="caName">Đang tải ca điểm danh…</h1>
-    <p class="meta" id="caMeta">Bật GPS và kết nối WiFi của lớp trước khi bấm điểm danh.</p>
+    <p class="meta" id="caMeta">Bật GPS và kết nối WiFi của khoa trước khi bấm điểm danh.</p>
     <span class="state hide" id="caState"><i class="dot" id="caDot"></i><span id="caStateText"></span></span>
   </div>
 
@@ -104,11 +104,11 @@ input:focus-visible{outline:3px solid var(--gold); outline-offset:0; border-colo
       <input id="name" type="text" placeholder="Nguyễn Văn An" autocomplete="name" enterkeyhint="next">
     </div>
     <div class="field">
-      <label for="cls">Lớp hoặc mã học sinh</label>
+      <label for="cls">khoa hoặc buồng bệnh</label>
       <input id="cls" type="text" placeholder="10A4" autocomplete="off">
     </div>
     <div class="field hide" id="pinField">
-      <label for="pin">Mã PIN giáo viên đọc tại lớp</label>
+      <label for="pin">Mã PIN giáo viên đọc tại khoa</label>
       <input id="pin" type="text" inputmode="numeric" placeholder="4 chữ số" autocomplete="off">
     </div>
   </div>
@@ -205,8 +205,8 @@ var API = "https://script.google.com/macros/s/AKfycbzdYPTlDEui6t6xHZqAT-y_tAKVk6
       $("#caState").classList.remove("hide");
       $("#caStateText").textContent = CFG.open ? "Đang nhận điểm danh" : "Ca đã đóng";
       $("#caDot").className = "dot" + (CFG.open ? "" : " off");
-      $("#caMeta").textContent = "Cho phép trong bán kính " + CFG.radius + " m quanh điểm WiFi của lớp."
-        + (CFG.checkIp ? " Phải dùng WiFi của lớp." : "");
+      $("#caMeta").textContent = "Cho phép trong bán kính " + CFG.radius + " m quanh điểm WiFi của khoa."
+        + (CFG.checkIp ? " Phải dùng WiFi của khoa." : "");
       $("#pinField").classList.toggle("hide", !CFG.needPin);
       $("#go").disabled = !CFG.open;
       $("#go").textContent = CFG.open ? "Điểm danh" : "Ca đã đóng";
@@ -228,7 +228,7 @@ var API = "https://script.google.com/macros/s/AKfycbzdYPTlDEui6t6xHZqAT-y_tAKVk6
     var pin = $("#pin").value.trim();
 
     if (!name) { show("bad", "Chưa có họ tên", "Nhập họ và tên rồi bấm điểm danh."); $("#name").focus(); return; }
-    if (CFG.needPin && !pin) { show("bad", "Chưa nhập mã PIN", "Mã PIN do giáo viên đọc tại lớp."); $("#pin").focus(); return; }
+    if (CFG.needPin && !pin) { show("bad", "Chưa nhập mã PIN", "Mã PIN do giáo viên đọc tại khoa."); $("#pin").focus(); return; }
     try { localStorage.setItem("dd.name", name); localStorage.setItem("dd.cls", cls); } catch (e) { }
 
     btn.disabled = true; btn.textContent = "Đang lấy vị trí…";
