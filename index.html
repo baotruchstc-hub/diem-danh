@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Điểm danh</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --board:#0E3A31;        /* xanh bảng lớp */
+  --board-2:#0A2B24;
+  --paper:#EBEFEA;
+  --card:#FFFFFF;
+  --ink:#16211D;
+  --muted:#5D6B65;
+  --line:#D6DDD8;
+  --gold:#F2B705;         /* phấn vàng - màu hành động */
+  --ok:#1C7F5A;
+  --bad:#B3341F;
+  --warn:#8A6100;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.55; -webkit-text-size-adjust:100%;
+}
+.shell{max-width:440px; margin:0 auto; padding:0 0 40px}
+
+/* ---- bảng lớp ---- */
+.board{
+  background:
+    radial-gradient(120% 90% at 20% 0%, rgba(255,255,255,.07), transparent 60%),
+    linear-gradient(180deg,var(--board),var(--board-2));
+  color:#EFF4F1; padding:26px 22px 30px; border-radius:0 0 22px 22px;
+}
+.board .eyebrow{font-size:13px; color:#9FBDB2; margin:0 0 6px}
+.board h1{font-size:25px; line-height:1.25; font-weight:800; margin:0; letter-spacing:-.015em}
+.board .meta{margin:14px 0 0; font-size:14px; color:#BBD3C9}
+.state{
+  display:inline-flex; align-items:center; gap:7px; margin-top:16px;
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18);
+  padding:6px 12px 6px 9px; border-radius:999px; font-size:13.5px; font-weight:500;
+}
+.dot{width:9px; height:9px; border-radius:50%; background:var(--gold)}
+.dot.off{background:#E08A70}
+
+/* ---- thẻ ---- */
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; margin:16px 14px 0}
+label{display:block; font-size:14px; font-weight:500; margin:0 0 6px; color:var(--muted)}
+.field + .field{margin-top:14px}
+input{
+  width:100%; padding:13px 14px; font:inherit; color:var(--ink);
+  background:#FAFBFA; border:1.5px solid var(--line); border-radius:11px;
+}
+input:focus-visible{outline:3px solid var(--gold); outline-offset:0; border-color:var(--board)}
+.go{
+  display:block; width:calc(100% - 28px); margin:16px 14px 0;
+  padding:19px 16px; font:inherit; font-size:18px; font-weight:800; letter-spacing:.01em;
+  color:var(--board-2); background:var(--gold);
+  border:0; border-radius:14px; cursor:pointer;
+  box-shadow:0 3px 0 #C99704;
+}
+.go:active{transform:translateY(2px); box-shadow:0 1px 0 #C99704}
+.go:disabled{background:#D9DEDA; color:#8A948F; box-shadow:0 3px 0 #C3C9C5; cursor:not-allowed}
+.go:focus-visible{outline:3px solid var(--board); outline-offset:3px}
+
+/* ---- kết quả ---- */
+.result{margin:16px 14px 0; border-radius:16px; padding:18px; border-left:6px solid var(--muted); background:var(--card); border:1px solid var(--line)}
+.result.ok{border-left-color:var(--ok)}
+.result.bad{border-left-color:var(--bad)}
+.result.warn{border-left-color:var(--warn)}
+.result h2{margin:0 0 10px; font-size:19px; font-weight:800}
+.result.ok h2{color:var(--ok)} .result.bad h2{color:var(--bad)} .result.warn h2{color:var(--warn)}
+.result p{margin:0; font-size:14.5px; color:var(--muted)}
+.rows{margin-top:12px; border-top:1px solid var(--line)}
+.rows div{display:flex; justify-content:space-between; gap:12px; padding:8px 0; border-bottom:1px solid var(--line); font-size:14.5px}
+.rows div span:first-child{color:var(--muted)}
+.rows div span:last-child{font-weight:600; font-variant-numeric:tabular-nums}
+.reveal{animation:pop .28s ease-out}
+@keyframes pop{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:none}}
+@media (prefers-reduced-motion:reduce){.reveal{animation:none}}
+
+.hint{margin:14px 22px 0; font-size:13px; color:var(--muted)}
+.hide{display:none !important}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="board">
+    <p class="eyebrow">Điểm danh tại lớp</p>
+    <h1 id="caName">Đang tải ca điểm danh…</h1>
+    <p class="meta" id="caMeta">Bật GPS và kết nối WiFi của lớp trước khi bấm điểm danh.</p>
+    <span class="state hide" id="caState"><i class="dot" id="caDot"></i><span id="caStateText"></span></span>
+  </div>
+
+  <div class="card" id="form">
+    <div class="field">
+      <label for="name">Họ và tên</label>
+      <input id="name" type="text" placeholder="Nguyễn Văn An" autocomplete="name" enterkeyhint="next">
+    </div>
+    <div class="field">
+      <label for="cls">Lớp hoặc mã học sinh</label>
+      <input id="cls" type="text" placeholder="10A4" autocomplete="off">
+    </div>
+    <div class="field hide" id="pinField">
+      <label for="pin">Mã PIN giáo viên đọc tại lớp</label>
+      <input id="pin" type="text" inputmode="numeric" placeholder="4 chữ số" autocomplete="off">
+    </div>
+  </div>
+
+  <button class="go" id="go" disabled>Đang kết nối…</button>
+  <p class="hint" id="hint">Máy sẽ ghi lại thời gian và vị trí của bạn vào sổ điểm danh.</p>
+
+  <div id="out"></div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   DÁN URL ỨNG DỤNG WEB CỦA APPS SCRIPT VÀO ĐÂY (kết thúc bằng /exec)
+   ════════════════════════════════════════════════════════════════ */
+var API = "https://script.google.com/macros/s/AKfycbzdYPTlDEui6t6xHZqAT-y_tAKVk6CP4hQZ6n9P--jepT08OQVu9Fw6F_g9fmJyH9_d/exec";
+
+(function () {
+  "use strict";
+  var $ = function (s) { return document.querySelector(s); };
+  var CFG = null;
+
+  /* --- gọi máy chủ bằng JSONP: không vướng CORS --- */
+  function call(params) {
+    return new Promise(function (resolve, reject) {
+      var cb = "cb" + Date.now() + Math.floor(Math.random() * 1e4);
+      var s = document.createElement("script");
+      var t = setTimeout(function () { done(); reject(new Error("Máy chủ không phản hồi.")); }, 25000);
+      function done() { clearTimeout(t); try { delete window[cb]; } catch (e) { window[cb] = undefined; } s.remove(); }
+      window[cb] = function (d) { done(); resolve(d); };
+      s.onerror = function () { done(); reject(new Error("Không gọi được máy chủ. Kiểm tra lại URL và quyền truy cập của Apps Script.")); };
+      var q = [];
+      for (var k in params) { if (params[k] != null) q.push(encodeURIComponent(k) + "=" + encodeURIComponent(params[k])); }
+      q.push("callback=" + cb);
+      s.src = API + "?" + q.join("&");
+      document.head.appendChild(s);
+    });
+  }
+
+  function deviceId() {
+    var k = "dd.device", v = "";
+    try { v = localStorage.getItem(k) || ""; } catch (e) { }
+    if (!v) {
+      v = "d" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      try { localStorage.setItem(k, v); } catch (e) { }
+    }
+    return v;
+  }
+
+  function position() {
+    return new Promise(function (res, rej) {
+      if (!navigator.geolocation) return rej(new Error("Trình duyệt không hỗ trợ định vị."));
+      navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    });
+  }
+
+  function geoText(err) {
+    if (err && err.code === 1) return "Bạn đã chặn quyền vị trí. Mở phần cài đặt trang và cho phép Vị trí, rồi bấm lại.";
+    if (err && err.code === 2) return "Thiết bị chưa xác định được vị trí. Bật GPS rồi bấm lại.";
+    if (err && err.code === 3) return "Quá lâu không lấy được vị trí. Ra gần cửa sổ rồi bấm lại.";
+    return (err && err.message) || "Không lấy được vị trí.";
+  }
+
+  function publicIp() {
+    return fetch("https://api.ipify.org?format=json")
+      .then(function (r) { return r.json(); })
+      .then(function (j) { return j.ip; })
+      .catch(function () { return ""; });
+  }
+
+  function show(kind, title, text, rows) {
+    var html = '<div class="result reveal ' + kind + '"><h2>' + title + "</h2>" +
+      (text ? "<p>" + text + "</p>" : "");
+    if (rows && rows.length) {
+      html += '<div class="rows">';
+      rows.forEach(function (r) { html += "<div><span>" + r[0] + "</span><span>" + r[1] + "</span></div>"; });
+      html += "</div>";
+    }
+    $("#out").innerHTML = html + "</div>";
+    $("#out").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  /* --- nạp cấu hình ca --- */
+  function loadConfig() {
+    if (API.indexOf("XXXX") > -1) {
+      $("#caName").textContent = "Chưa nối với Google Sheet";
+      $("#caMeta").textContent = "Mở file HTML này bằng trình soạn thảo và dán URL Ứng dụng web của Apps Script vào dòng API.";
+      $("#go").textContent = "Chưa sẵn sàng";
+      return;
+    }
+    call({}).then(function (r) {
+      CFG = (r && r.config) || null;
+      if (!CFG) throw new Error("Máy chủ trả về dữ liệu lạ.");
+      $("#caName").textContent = CFG.ca;
+      $("#caState").classList.remove("hide");
+      $("#caStateText").textContent = CFG.open ? "Đang nhận điểm danh" : "Ca đã đóng";
+      $("#caDot").className = "dot" + (CFG.open ? "" : " off");
+      $("#caMeta").textContent = "Cho phép trong bán kính " + CFG.radius + " m quanh điểm WiFi của lớp."
+        + (CFG.checkIp ? " Phải dùng WiFi của lớp." : "");
+      $("#pinField").classList.toggle("hide", !CFG.needPin);
+      $("#go").disabled = !CFG.open;
+      $("#go").textContent = CFG.open ? "Điểm danh" : "Ca đã đóng";
+    }).catch(function (e) {
+      $("#caName").textContent = "Không kết nối được máy chủ";
+      $("#caMeta").textContent = e.message;
+      $("#go").textContent = "Thử lại";
+      $("#go").disabled = false;
+      $("#go").onclick = function () { location.reload(); };
+    });
+  }
+
+  /* --- điểm danh --- */
+  $("#go").addEventListener("click", function () {
+    if (!CFG) return;
+    var btn = this;
+    var name = $("#name").value.trim();
+    var cls = $("#cls").value.trim();
+    var pin = $("#pin").value.trim();
+
+    if (!name) { show("bad", "Chưa có họ tên", "Nhập họ và tên rồi bấm điểm danh."); $("#name").focus(); return; }
+    if (CFG.needPin && !pin) { show("bad", "Chưa nhập mã PIN", "Mã PIN do giáo viên đọc tại lớp."); $("#pin").focus(); return; }
+    try { localStorage.setItem("dd.name", name); localStorage.setItem("dd.cls", cls); } catch (e) { }
+
+    btn.disabled = true; btn.textContent = "Đang lấy vị trí…";
+    show("warn", "Đang xác định vị trí", "Giữ máy yên vài giây, đừng tắt màn hình.");
+
+    Promise.all([position(), publicIp()]).then(function (a) {
+      var p = a[0], ip = a[1];
+      btn.textContent = "Đang ghi vào sổ…";
+      return call({
+        action: "checkin",
+        data: JSON.stringify({
+          name: name, cls: cls, pin: pin,
+          lat: p.coords.latitude, lng: p.coords.longitude,
+          acc: Math.round(p.coords.accuracy || 0),
+          ip: ip, dev: deviceId(), ua: navigator.userAgent
+        })
+      });
+    }).then(function (r) {
+      btn.disabled = false; btn.textContent = "Điểm danh lại";
+      if (!r || !r.ok) {
+        show("bad", "Chưa ghi được", (r && r.msg) || "Máy chủ từ chối yêu cầu.");
+        return;
+      }
+      var kind = r.status === "Hợp lệ" ? "ok" : "warn";
+      var title = r.status === "Hợp lệ" ? "Đã điểm danh" : "Đã ghi nhận — " + r.status;
+      var text = r.status === "Hợp lệ" ? "Tên bạn đã vào sổ điểm danh của giáo viên."
+        : "Vị trí của bạn nằm ngoài bán kính cho phép. Giáo viên sẽ xem lại trường hợp này.";
+      show(kind, title, text, [
+        ["Ca", r.ca],
+        ["Thời gian", r.time],
+        ["Khoảng cách", r.dist + " m / " + r.radius + " m"],
+        ["Sai số GPS", "± " + r.acc + " m"]
+      ]);
+    }).catch(function (err) {
+      btn.disabled = false; btn.textContent = "Điểm danh";
+      show("bad", "Chưa ghi được", geoText(err));
+    });
+  });
+
+  try {
+    $("#name").value = localStorage.getItem("dd.name") || "";
+    $("#cls").value = localStorage.getItem("dd.cls") || "";
+  } catch (e) { }
+
+  loadConfig();
+})();
+</script>
+</body>
+</html>
